@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
@@ -45,7 +46,7 @@ public class TesterUISettings {
     static {
         try {
             DEFAULT_PATH_INPUT = Paths.get("src/test/resources/exerciser/address.json");
-        } catch (Exception e) {
+        } catch (InvalidPathException e) {
             ; // leave this as null if not found
         }
     }

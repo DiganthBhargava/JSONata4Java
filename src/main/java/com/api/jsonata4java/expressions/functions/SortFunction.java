@@ -31,9 +31,9 @@ import com.api.jsonata4java.expressions.generated.MappingExpressionParser.Functi
 import com.api.jsonata4java.expressions.utils.ArrayUtils;
 import com.api.jsonata4java.expressions.utils.Constants;
 import com.api.jsonata4java.expressions.utils.FunctionUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 public class SortFunction extends FunctionBase {
 
@@ -65,6 +65,9 @@ public class SortFunction extends FunctionBase {
                 for (final JsonNode node : array) {
                     result.add(node);
                 }
+                // JSONata only defines the default comparator for homogeneous numbers or strings.
+                // Other values, such as objects, require an explicit comparator function.
+                validateDefaultSortArray(result);
                 msort(result, null, expressionVisitor, ctx);
             } else {
                 result = JsonNodeFactory.instance.arrayNode();
@@ -123,6 +126,13 @@ public class SortFunction extends FunctionBase {
         }
 
         return result;
+    }
+
+    private void validateDefaultSortArray(ArrayNode array) {
+        if (array.isEmpty() || ArrayUtils.isArrayOfNumbers(array) || ArrayUtils.isArrayOfStrings(array)) {
+            return;
+        }
+        throw new EvaluateRuntimeException(ERR_ARG1BADTYPE);
     }
 
     @Override

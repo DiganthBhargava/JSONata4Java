@@ -53,10 +53,10 @@ import java.util.Random;
 //import java.rmi.dgc.VMID;
 import java.util.UUID;
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.NullNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.NullNode;
 
 public class JSONataUtils implements Serializable {
 
@@ -229,15 +229,15 @@ public class JSONataUtils implements Serializable {
      * @param fqFilename fully qualified name of the text file to be opened
      * @return open buffered reader to allow individual lines of a text file to be
      *         read
-     * @throws Exception if the file cannot be found
+     * @throws IOException if the file cannot be found
      * @see #closeTextFile(BufferedReader) to close the reader returned by this
      *      function
      */
-    public static BufferedReader openTextFile(String fqFilename) throws Exception {
+    public static BufferedReader openTextFile(String fqFilename) throws IOException {
         BufferedReader input = null;
         File inputFile = new File(fqFilename);
         if (inputFile.exists() == false) {
-            throw new Exception(inputFile.getCanonicalPath() + " does not exist.");
+            throw new IOException(inputFile.getCanonicalPath() + " does not exist.");
         }
         if (inputFile.isFile() == false) {
             throw new IOException(
@@ -375,10 +375,8 @@ public class JSONataUtils implements Serializable {
                 retObj = (JsonNode) mapper.readValue(br, Object.class);
 
             }
-        } catch (IOException ioe) {
-            throw new IOException("Cannot parse \"" + jsonFQFileName + "\"", ioe);
-        } catch (Exception e) {
-            throw new IOException("Cannot load file \"" + jsonFQFileName + "\"", e);
+        } catch (IOException | RuntimeException e) {
+            throw new IOException("Cannot parse \"" + jsonFQFileName + "\"", e);
         } finally {
             closeTextFile(br);
         }

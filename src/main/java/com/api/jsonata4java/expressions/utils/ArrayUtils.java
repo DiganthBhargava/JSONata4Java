@@ -24,12 +24,12 @@ package com.api.jsonata4java.expressions.utils;
 
 import java.io.Serializable;
 import com.api.jsonata4java.expressions.EvaluateRuntimeException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ValueNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.JsonNodeType;
+import tools.jackson.databind.node.NullNode;
+import tools.jackson.databind.node.ValueNode;
 
 public class ArrayUtils implements Serializable {
 
@@ -98,10 +98,11 @@ public class ArrayUtils implements Serializable {
         boolean result = false;
         if (left.isTextual() && right.isTextual()) {
             result = left.asText().compareTo(right.asText()) > 0;
-        } else {
-            ValueNode a = NumberUtils.convertNumberToValueNode(left.asText());
-            ValueNode b = NumberUtils.convertNumberToValueNode(right.asText());
-            result = Double.valueOf(a.doubleValue()).compareTo(Double.valueOf(b.doubleValue())) > 0;
+        } else if (left.isNumber() && right.isNumber()) {
+            result = Double.compare(left.doubleValue(), right.doubleValue()) > 0;
+        }
+        else {
+            result = left.toString().compareTo(right.toString()) > 0;
         }
         return result;
     }

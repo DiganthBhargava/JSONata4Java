@@ -33,8 +33,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Runs the test cases defined in src/test/resources/JsonMergeUtilsTest.json
@@ -57,7 +57,7 @@ public class JsonMergeUtilsTest implements Serializable {
     public JsonNode expected;
 
     @Parameters(name = "{0} <- {1} = {2}")
-    public static Collection<Object[]> data() throws Exception {
+    public static Collection<Object[]> data() {
         List<Object[]> data = new ArrayList<>();
 
         JsonNode testCasesJson = OM.readTree(new File(TESTCASES_JSON_PATH));
@@ -81,7 +81,7 @@ public class JsonMergeUtilsTest implements Serializable {
 
     }
 
-    //	public static JsonNode merge(String x, String y) throws JsonProcessingException, IOException {
+    //	public static JsonNode merge(String x, String y) throws Exception, IOException {
     //		return merge(, OM.readTree(y));
     //	}
     //	

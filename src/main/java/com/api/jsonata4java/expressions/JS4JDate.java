@@ -283,7 +283,7 @@ public class JS4JDate extends Date {
     * @see #CREATE_DATE_FORMAT_12
     */
     static synchronized public Date makeDate(String strDate)
-        throws Exception {
+        throws ParseException {
         if (strDate == null || strDate.length() == 0) {
             return new Date();
         }
@@ -343,7 +343,7 @@ public class JS4JDate extends Date {
                     break;
                 }
                 default: {
-                    throw new Exception("Unrecognized month \"" + parts[2] + "\" in input " + strDate);
+                    throw parseException("Unrecognized month \"" + parts[2] + "\" in input " + strDate, null);
                 }
             } // end switch on month
             try {
@@ -354,10 +354,10 @@ public class JS4JDate extends Date {
                 newDate += day;
                 newDate += "T";
             } catch (NumberFormatException nfe) {
-                throw new Exception("Unrecognized day of month \"" + parts[1] + "\" in input " + strDate);
+                throw parseException("Unrecognized day of month \"" + parts[1] + "\" in input " + strDate, nfe);
             }
             if (parts[3].trim().length() != 8) {
-                throw new Exception("Unrecognized time \"" + parts[3] + "\" in input " + strDate);
+                throw parseException("Unrecognized time \"" + parts[3] + "\" in input " + strDate, null);
             }
             newDate += parts[3].trim();
             strDate = newDate;
@@ -414,7 +414,7 @@ public class JS4JDate extends Date {
                     break;
                 }
                 default: {
-                    throw new Exception("Unrecognized month \"" + parts[3] + "\" in input " + strDate);
+                    throw parseException("Unrecognized month \"" + parts[3] + "\" in input " + strDate, null);
                 }
             } // end switch on month
             try {
@@ -425,10 +425,10 @@ public class JS4JDate extends Date {
                 newDate += day;
                 newDate += "T";
             } catch (NumberFormatException nfe) {
-                throw new Exception("Unrecognized day of month \"" + parts[1] + "\" in input " + strDate);
+                throw parseException("Unrecognized day of month \"" + parts[1] + "\" in input " + strDate, nfe);
             }
             if (parts[4].trim().length() != 8) {
-                throw new Exception("Unrecognized time \"" + parts[4] + "\" in input " + strDate);
+                throw parseException("Unrecognized time \"" + parts[4] + "\" in input " + strDate, null);
             }
             newDate += parts[4].trim();
             strDate = newDate;
@@ -518,7 +518,7 @@ public class JS4JDate extends Date {
                         switch (i) {
                             case 0: { // yyyy
                                 if (test < 1900 || test > 2500) {
-                                    throw new Exception(
+                                    throw new IllegalArgumentException(
                                         "Invalid year. Must be between 1900 and 2500 inclusive. Received: \""
                                             + dateParts[i] + "\"");
                                 }
@@ -526,7 +526,7 @@ public class JS4JDate extends Date {
                             }
                             case 1: { // MM
                                 if (test < 1 || test > 12) {
-                                    throw new Exception(
+                                    throw new IllegalArgumentException(
                                         "Invalid month. Must be between 1 and 12 inclusive. Received: \""
                                             + dateParts[i] + "\"");
                                 }
@@ -534,16 +534,15 @@ public class JS4JDate extends Date {
                             }
                             case 2: { // dd
                                 if (test < 1 || test > 31) {
-                                    throw new Exception(
+                                    throw new IllegalArgumentException(
                                         "Invalid day. Must be between 1 and 31 (depending on the month and leap year) inclusive. Received: \""
                                             + dateParts[i] + "\"");
                                 }
                                 break;
                             }
                         }
-                    } catch (Exception e) {
-                        throw new Exception(
-                            "Date contains \"" + dateParts[i] + "\"", e);
+                    } catch (IllegalArgumentException e) {
+                        throw parseException("Date contains \"" + dateParts[i] + "\"", e);
                     }
                 }
             }
@@ -561,7 +560,7 @@ public class JS4JDate extends Date {
                         switch (i) {
                             case 0: { // hh
                                 if (test < 0 || test > 23) {
-                                    throw new Exception(
+                                    throw new IllegalArgumentException(
                                         "Invalid hour. Must be between 1 and 23 inclusive. Received: \""
                                             + timeParts[i] + "\"");
                                 }
@@ -569,7 +568,7 @@ public class JS4JDate extends Date {
                             }
                             case 1: { // mm
                                 if (test < 0 || test > 59) {
-                                    throw new Exception(
+                                    throw new IllegalArgumentException(
                                         "Invalid minutes. Must be between 0 and 59 inclusive. Received: \""
                                             + timeParts[i] + "\"");
                                 }
@@ -577,16 +576,15 @@ public class JS4JDate extends Date {
                             }
                             case 2: { // ss
                                 if (test < 0 || test > 59) {
-                                    throw new Exception(
+                                    throw new IllegalArgumentException(
                                         "Invalid day. Must be between 0 and 59 inclusive. Received: \""
                                             + timeParts[i] + "\"");
                                 }
                                 break;
                             }
                         }
-                    } catch (Exception e) {
-                        throw new Exception(
-                            "Date contains \"" + timeParts[i] + "\"", e);
+                    } catch (IllegalArgumentException e) {
+                        throw parseException("Date contains \"" + timeParts[i] + "\"", e);
                     }
                 }
             }
@@ -652,10 +650,17 @@ public class JS4JDate extends Date {
             return new SimpleDateFormat(CREATE_DATE_FORMAT,
                 new DateFormatSymbols()).parse(strDate);
         } catch (ParseException e) {
-            throw new Exception(
-                "Date \"" + strDate + "\" does not parse according to the format \""
-                    + CREATE_DATE_FORMAT + "\"");
+            throw parseException("Date \"" + strDate + "\" does not parse according to the format \""
+                    + CREATE_DATE_FORMAT + "\"", e);
         }
+    }
+
+    private static ParseException parseException(String message, Throwable cause) {
+        ParseException parseException = new ParseException(message, 0);
+        if (cause != null) {
+            parseException.initCause(cause);
+        }
+        return parseException;
     }
 
     /**
@@ -679,7 +684,7 @@ public class JS4JDate extends Date {
         SimpleDateFormat dateformat;
         try {
             dateformat = new SimpleDateFormat(strFormat, new DateFormatSymbols());
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             dateformat = new SimpleDateFormat(CREATE_DATE_FORMAT,
                 new DateFormatSymbols());
         }
@@ -961,13 +966,12 @@ public class JS4JDate extends Date {
     * @see #CREATE_DATE_FORMAT_7
     * @see #CREATE_DATE_FORMAT_8
     * @see #CREATE_DATE_FORMAT_12
-    * @throws Exception
-    *            {@link Exception} if the passed date does not comply
+    * @throws ParseException
+    *            if the passed date does not comply
     *            with the appropriate supported formats.
-    *            {@link Exception} if the date or time
-    *            components are not correct.
+    *            if the date or time components are not correct.
     */
-    public JS4JDate(String strDate) throws Exception {
+    public JS4JDate(String strDate) throws ParseException {
         super();
         setTime(makeDate(strDate).getTime());
     }

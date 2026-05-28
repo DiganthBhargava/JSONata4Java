@@ -291,10 +291,6 @@ public class RoundFunctionTests implements Serializable {
 
     @Test
     public void runTest() throws Exception {
-        try {
-            test(this.expression, expectedResultJsonString, expectedRuntimeExceptionMessage, null);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        test(this.expression, expectedResultJsonString, expectedRuntimeExceptionMessage, null);
     }
 }

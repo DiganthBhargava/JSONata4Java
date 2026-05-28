@@ -1,4 +1,7 @@
 # JSONata4Java #
+
+### ```Fork created for Jackson 3 / Spring Boot 4 compatibility migration.``` ###
+
 This project provides an Open Source Java version of the JSONata project from https://jsonata.org
 
 JSONata was created by Andrew Coleman to provide many of the features that XPath and XQuery provide for XML, except these capabilities apply to JSON-structured data. The JavaScript implementation is described at the following websites&colon;
@@ -164,14 +167,14 @@ would have to be converted into
 
 ### Using JSONata4Java APIs ###
 The API's to embed JSONata execution in your code are simple. The code below is copied from the Test utility, and uses the 
-jackson core ObjectMapper to parse a JSON formatted String into a JsonNode object. The dependency for the 
-jackson core is below\&colon;
+Jackson 3 ObjectMapper to parse a JSON formatted String into a JsonNode object. The dependency for
+Jackson 3 databind is below\&colon;
 
 ``` 
 <dependency>
-   <groupId>com.fasterxml.jackson.core</groupId>
+   <groupId>tools.jackson.core</groupId>
    <artifactId>jackson-databind</artifactId>
-   <version>2.9.8</version>
+   <version>3.1.3</version>
 </dependency>
 ```
 
@@ -187,13 +190,13 @@ import com.api.jsonata4java.expressions.EvaluateException;
 import com.api.jsonata4java.expressions.EvaluateRuntimeException;
 import com.api.jsonata4java.expressions.Expressions;
 import com.api.jsonata4java.expressions.ParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class Test {
 
-   public static void main(String[\] args) {
+   public static void main(String[] args) {
       Expressions expr = null;
       ObjectMapper mapper = new ObjectMapper();
       JsonNode jsonObj = null;
@@ -201,7 +204,7 @@ public class Test {
       String expression = "$sum(c)";
       try {
          jsonObj = mapper.readTree(json);
-      } catch (IOException e1) {
+      } catch (JacksonException e1) {
          e1.printStackTrace();
       }
 
@@ -213,7 +216,9 @@ public class Test {
          System.err.println(e.getLocalizedMessage());
       } catch (EvaluateRuntimeException ere) {
          System.out.println(ere.getLocalizedMessage());
-      } catch (JsonProcessingException e) {
+      } catch (IOException e) {
+         e.printStackTrace();
+      } catch (JacksonException e) {
          e.printStackTrace();
       }
       try {
@@ -224,7 +229,7 @@ public class Test {
          } else {
             System.out.println("" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
          }
-      } catch (EvaluateException | JsonProcessingException e) {
+      } catch (EvaluateException | JacksonException e) {
          System.err.println(e.getLocalizedMessage());
       }
    }

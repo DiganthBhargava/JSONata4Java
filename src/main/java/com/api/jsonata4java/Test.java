@@ -6,9 +6,9 @@ import com.api.jsonata4java.expressions.EvaluateException;
 import com.api.jsonata4java.expressions.EvaluateRuntimeException;
 import com.api.jsonata4java.expressions.Expressions;
 import com.api.jsonata4java.expressions.ParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class Test implements Serializable {
 
@@ -22,7 +22,7 @@ public class Test implements Serializable {
         String expression = "$sum(c)";
         try {
             jsonObj = mapper.readTree(json);
-        } catch (IOException e1) {
+        } catch (JacksonException e1) {
             e1.printStackTrace();
         }
 
@@ -30,14 +30,10 @@ public class Test implements Serializable {
             System.out.println("Using json:\n" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObj));
             System.out.println("expression=" + expression);
             expr = Expressions.parse(expression);
-        } catch (ParseException e) {
+        } catch (ParseException | EvaluateRuntimeException e) {
             System.err.println(e.getLocalizedMessage());
-        } catch (EvaluateRuntimeException ere) {
-            System.err.println(ere.getLocalizedMessage());
-        } catch (JsonProcessingException e) {
+        } catch (IOException | JacksonException e) {
             e.printStackTrace();
-        } catch (IOException ioe) {
-            System.err.println(ioe.getLocalizedMessage());
         }
         try {
             System.out.println("evaluate returns:");
@@ -47,7 +43,7 @@ public class Test implements Serializable {
             } else {
                 System.out.println("" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
             }
-        } catch (EvaluateException | JsonProcessingException e) {
+        } catch (EvaluateException | EvaluateRuntimeException | JacksonException e) {
             System.err.println(e.getLocalizedMessage());
         }
     }

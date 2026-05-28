@@ -3,9 +3,11 @@ package testmanually;
 import org.junit.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import com.api.jsonata4java.expressions.EvaluateException;
+import com.api.jsonata4java.expressions.EvaluateRuntimeException;
 import com.api.jsonata4java.expressions.Expressions;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class ThreadTester {
 
@@ -57,7 +59,7 @@ public class ThreadTester {
 					} else {
 						System.out.println("Got null result from " + exp.hashCode() + " data: " + data);
 					}
-				} catch (Exception ex) {
+				} catch (EvaluateException | EvaluateRuntimeException ex) {
 					// System.out.println(ex);
 					ex.printStackTrace();
 				}

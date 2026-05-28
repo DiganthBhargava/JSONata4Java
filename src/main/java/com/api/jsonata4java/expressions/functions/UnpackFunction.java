@@ -32,8 +32,8 @@ import com.api.jsonata4java.expressions.ExpressionsVisitor;
 import com.api.jsonata4java.expressions.generated.MappingExpressionParser.Function_callContext;
 import com.api.jsonata4java.expressions.utils.Constants;
 import com.api.jsonata4java.expressions.utils.FunctionUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 @SuppressWarnings("unused")
 public class UnpackFunction extends FunctionBase {
@@ -85,7 +85,7 @@ public class UnpackFunction extends FunctionBase {
             byte[] decoded = null;
             try {
                 decoded = JSONataUtils.hexDecode(argInput.asText());
-            } catch (Exception e) {
+            } catch (IllegalArgumentException e) {
                 throw new EvaluateRuntimeException(ERR_ARG1INVALIDHEX);
             }
 

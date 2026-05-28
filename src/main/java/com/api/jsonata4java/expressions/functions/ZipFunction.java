@@ -24,13 +24,15 @@ package com.api.jsonata4java.expressions.functions;
 
 import com.api.jsonata4java.expressions.EvaluateRuntimeException;
 import com.api.jsonata4java.expressions.ExpressionsVisitor;
+import com.api.jsonata4java.expressions.generated.MappingExpressionParser.Fct_chainContext;
 import com.api.jsonata4java.expressions.generated.MappingExpressionParser.Function_callContext;
 import com.api.jsonata4java.expressions.utils.ArrayUtils;
 import com.api.jsonata4java.expressions.utils.Constants;
 import com.api.jsonata4java.expressions.utils.FunctionUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import org.antlr.v4.runtime.ParserRuleContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 public class ZipFunction extends FunctionBase {
 
@@ -43,8 +45,12 @@ public class ZipFunction extends FunctionBase {
 
         // Retrieve the number of arguments
         JsonNode argObject = JsonNodeFactory.instance.nullNode();
-        boolean useContext = FunctionUtils.useContextVariable(this, ctx, getSignature());
-        int argCount = getArgumentCount(ctx);
+        // $zip is variadic, so explicit arguments must stay explicit. The generic
+        // context helper treats a partially-filled signature as needing context,
+        // which made $zip(a, b) include the root context as a hidden first array.
+        int explicitArgCount = getArgumentCount(ctx);
+        boolean useContext = useContextVariable(ctx, explicitArgCount);
+        int argCount = explicitArgCount;
         if (useContext) {
             argObject = FunctionUtils.getContextVariable(expressionVisitor);
             if (argObject != null && argObject.isNull() == false) {
@@ -66,9 +72,8 @@ public class ZipFunction extends FunctionBase {
                 }
                 inputArrays.add(a);
             }
-            for (int i = useContext ? 1 : 0; i < argCount; i++) {
-                a = ArrayUtils
-                    .ensureArray(expressionVisitor.visit(ctx.exprValues().exprList().expr(useContext ? i - 1 : i)));
+            for (int i = 0; i < explicitArgCount; i++) {
+                a = ArrayUtils.ensureArray(expressionVisitor.visit(ctx.exprValues().exprList().expr(i)));
                 if (a.size() < minSize) {
                     minSize = a.size();
                 }
@@ -89,6 +94,26 @@ public class ZipFunction extends FunctionBase {
         //		temp.add(result);
         //		result = temp;
         return result;
+    }
+
+    private boolean useContextVariable(Function_callContext ctx, int explicitArgCount) {
+        if (ctx == null) {
+            return false;
+        }
+        if (explicitArgCount == 0) {
+            return true;
+        }
+
+        // Function chains pass their left-hand value through context; keep that
+        // behavior for forms such as a ~> $zip([3, 4]).
+        ParserRuleContext parent = ctx.getParent();
+        while (parent != null) {
+            if (parent instanceof Fct_chainContext) {
+                return ctx.getStart().getTokenIndex() > parent.getStart().getTokenIndex();
+            }
+            parent = parent.getParent();
+        }
+        return false;
     }
 
     @Override

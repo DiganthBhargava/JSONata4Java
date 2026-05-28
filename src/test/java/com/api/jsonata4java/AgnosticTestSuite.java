@@ -85,15 +85,15 @@ import com.api.jsonata4java.expressions.path.PathExpressionTests;
 import com.api.jsonata4java.expressions.utils.JsonMergeUtils;
 import com.api.jsonata4java.expressions.utils.JsonMergeUtilsTest;
 import com.api.jsonata4java.expressions.utils.Utils;
-import com.fasterxml.jackson.core.json.JsonWriteFeature;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.BooleanNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.LongNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.json.JsonWriteFeature;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.BooleanNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.LongNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @RunWith(AgnosticTestSuite.class)
 // @ExtendWith(AgnosticTestSuiteExtension.class)
@@ -121,9 +121,9 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
     private static final Map<String, List<String>> SKIP_CASES = new HashMap<>();
     static {
         // address characters > 127 to be escaped
-        _objectMapper.getFactory().configure(JsonWriteFeature.ESCAPE_NON_ASCII.mappedFeature(), true);
+//        _objectMapper.getFactory().configure(JsonWriteFeature.ESCAPE_NON_ASCII.mappedFeature(), true);
         // ensure we don't have scientific notation for numbers
-        _objectMapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+        _objectMapper.rebuild().enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
 
         // due to unparsable use of 'in' in the tests
         SKIP_CASES("inclusion-operator", "case004", "case005");
@@ -261,7 +261,7 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
         super(testClass);
         try {
             init();
-        } catch (Exception e) {
+        } catch (EvaluateException | IOException | ParseException | RuntimeException e) {
             throw new InitializationError(e);
         }
     }
@@ -277,9 +277,9 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
         return sb.toString();
     }
 
-    private void init() throws Exception {
+    private void init() throws EvaluateException, IOException, ParseException {
         final ObjectMapper om = new ObjectMapper();
-        om.getFactory().configure(JsonWriteFeature.ESCAPE_NON_ASCII.mappedFeature(), true);
+//        om.getFactory().configure(JsonWriteFeature.ESCAPE_NON_ASCII.mappedFeature(), true);
 
         // load and parse all the dataset json files into memory
         System.out.println("Loading datasets");
@@ -426,7 +426,7 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
         }
     }
 
-    protected void runPathExpressionTest(Collection<Object[]> data) throws Exception {
+    protected void runPathExpressionTest(Collection<Object[]> data) throws ParseException {
         for (Object[] test : data) {
 
             JsonNode inputJson = test[1] == null ? null
@@ -483,14 +483,14 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
 
     }
 
-    protected void runUnpackTest(Collection<Object[]> data) throws Exception {
+    protected void runUnpackTest(Collection<Object[]> data) throws EvaluateException, IOException, ParseException {
         for (Object[] test : data) {
             Utils.test(test[0] == null ? null : test[0].toString(), test[1] == null ? null : (JsonNode) test[1],
                 test[2] == null ? null : test[2].toString(), null);
         }
     }
 
-    protected void runJsonCompareTest(Collection<Object[]> data) throws Exception {
+    protected void runJsonCompareTest(Collection<Object[]> data) {
         for (Object[] test : data) {
             final JsonNode actual = JsonMergeUtils.merge(test[0] == null ? null : (JsonNode) test[0],
                 test[1] == null ? null : (JsonNode) test[1]);
@@ -498,7 +498,7 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
         }
     }
 
-    protected void runPathExpressionSyntaxTest(Collection<Object[]> data) throws Exception {
+    protected void runPathExpressionSyntaxTest(Collection<Object[]> data) {
         for (Object[] test : data) {
             try {
                 PathExpression.parse(test[0] == null ? null : test[0].toString());
@@ -517,7 +517,7 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
         }
     }
 
-    protected void runExecutionTest(Collection<Object[]> data) throws Exception {
+    protected void runExecutionTest(Collection<Object[]> data) throws IOException {
         for (Object[] test : data) {
             try {
                 Expressions.parse(test[0] == null ? null : test[0].toString());
@@ -537,7 +537,7 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
         }
     }
 
-    protected void runComponentTest(Collection<Object[]> data) throws Exception {
+    protected void runComponentTest(Collection<Object[]> data) throws EvaluateException, IOException, ParseException {
         for (Object[] test : data) {
             if (test.length == 3) {
                 Utils.test(test[0] == null ? null : test[0].toString(), test[1] == null ? null : test[1].toString(),
@@ -552,7 +552,7 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
         }
     }
 
-    protected void runJsonataTest(Collection<Object[]> data) throws Exception {
+    protected void runJsonataTest(Collection<Object[]> data) throws EvaluateException, IOException, ParseException {
         for (Object[] test : data) {
             Utils.test(test[1] == null ? null : test[1].toString(), test[2] == null ? null : test[2].toString(), null,
                 test[0] == null ? null : test[0].toString());
@@ -590,7 +590,7 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
                     } else {
                         System.err.println(testDesc + " is empty");
                     }
-                } catch (Exception sbfe) {
+                } catch (RuntimeException sbfe) {
                     System.err.println("FAILURE in AgnosticTestSuite test case: " + group.getGroupName() + "." + testCase.getCaseName()
                         + ": " + testDesc + " Error: " + sbfe.getLocalizedMessage());
                 }
@@ -600,7 +600,7 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
                     // introduce bindings if available
                     String key = "";
                     ObjectNode bindings = testCase.getBindings();
-                    for (Iterator<String> it = bindings.fieldNames(); it.hasNext();) {
+                    for (Iterator<String> it = bindings.propertyNames().iterator(); it.hasNext();) {
                         key = it.next();
                         JsonNode value = bindings.get(key);
                         e.getEnvironment().setVariable("$" + key, value);
@@ -663,7 +663,7 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
         Description description;
         List<TestCase> testCases;
 
-        public TestGroup(String groupName) throws Exception {
+        public TestGroup(String groupName) {
             this.groupName = groupName;
             this.description = Description.createSuiteDescription(groupName);
             this.testCases = new ArrayList<>();
@@ -782,11 +782,11 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
                 if (this.expectedResult != null && this.expectedResult.isDouble()) {
                     double d = this.expectedResult.asDouble();
                     if (isWholeNumber(d)) {
-                        this.expectedResult = new LongNode(this.expectedResult.asLong());
+                        this.expectedResult = new LongNode((long) this.expectedResult.doubleValue());
                     } else {
                         // below produced to high precision and is slower
                         // BigDecimal bd = new BigDecimal(d);
-                        // this.expectedResult = new TextNode(bd.toPlainString());
+                        // this.expectedResult = new StringNode(bd.toPlainString());
                     }
                 }
             } else {
@@ -816,7 +816,7 @@ public class AgnosticTestSuite extends ParentRunner<TestGroup> {
                     ObjectNode bindings = (ObjectNode) bindTest;
                     // are there keys to be bound as variables to their content?
                     String varID = "";
-                    for (Iterator<String> it = bindings.fieldNames(); it.hasNext();) {
+                    for (Iterator<String> it = bindings.propertyNames().iterator(); it.hasNext();) {
                         varID = it.next();
                         this.bindings.set(varID, bindings.get(varID));
                     }

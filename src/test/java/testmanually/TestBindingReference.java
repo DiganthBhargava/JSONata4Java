@@ -7,10 +7,15 @@ import org.junit.Assert;
 import org.junit.Test;
 import com.api.jsonata4java.Binding;
 import com.api.jsonata4java.Expression;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.IntNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import com.api.jsonata4java.expressions.EvaluateException;
+import com.api.jsonata4java.expressions.EvaluateRuntimeException;
+import com.api.jsonata4java.expressions.ParseException;
+import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.IntNode;
+import tools.jackson.databind.node.StringNode;
 
 public class TestBindingReference implements Serializable {
 
@@ -18,11 +23,12 @@ public class TestBindingReference implements Serializable {
 
     static ObjectMapper JACKSON = new ObjectMapper();
 
-    static public void supportsContextualizedConstructionX() throws Exception {
+    static public void supportsContextualizedConstructionX()
+        throws EvaluateException, IOException, ParseException {
         String json = "{\n"
             + "  \"bar\": \"baz\"\n"
             + "}";
-        JsonNode rootContextNode = JACKSON.readTree(json);
+        JsonNode rootConStringNode = JACKSON.readTree(json);
 
         String jsonata = "$notification.foo";
         Expression jsonataExpr = Expression.jsonata(jsonata);
@@ -34,11 +40,11 @@ public class TestBindingReference implements Serializable {
         List<Binding> bindingList = new ArrayList<Binding>();
         bindingList.add(bindingNode);
 
-        JsonNode transformed = jsonataExpr.evaluate(rootContextNode, bindingList);
+        JsonNode transformed = jsonataExpr.evaluate(rootConStringNode, bindingList);
         System.out.println(transformed);
         
         json = "{\"bar\": [ 4, 5, 6]}";
-        rootContextNode = JACKSON.readTree(json);
+        rootConStringNode = JACKSON.readTree(json);
         jsonata = "bar[$notification[1]]";
         jsonataExpr = Expression.jsonata(jsonata);
         jObj = JACKSON.readTree("[1,2,3]" );
@@ -46,7 +52,7 @@ public class TestBindingReference implements Serializable {
         bindingList = new ArrayList<Binding>();
         bindingList.add(bindingNode);
         
-        transformed = jsonataExpr.evaluate(rootContextNode, bindingList);
+        transformed = jsonataExpr.evaluate(rootConStringNode, bindingList);
         System.out.println(transformed);
     }
 
@@ -55,7 +61,7 @@ public class TestBindingReference implements Serializable {
         String json = "{\n"
             + "  \"bar\": \"baz\"\n"
             + "}";
-        JsonNode rootContextNode = JACKSON.readTree(json);
+        JsonNode rootConStringNode = JACKSON.readTree(json);
 
         String jsonata = "$notification.foo";
         Expression jsonataExpr = Expression.jsonata(jsonata);
@@ -67,12 +73,12 @@ public class TestBindingReference implements Serializable {
         List<Binding> bindingList = new ArrayList<Binding>();
         bindingList.add(bindingNode);
 
-        JsonNode actual = jsonataExpr.evaluate(rootContextNode, bindingList);
-        JsonNode expected = new TextNode("bar");
+        JsonNode actual = jsonataExpr.evaluate(rootConStringNode, bindingList);
+        JsonNode expected = new StringNode("bar");
         Assert.assertEquals(expected, actual);
 
         json = "{\"bar\": [ 4, 5, 6]}";
-        rootContextNode = JACKSON.readTree(json);
+        rootConStringNode = JACKSON.readTree(json);
         jsonata = "bar[$notification[1]]";
         jsonataExpr = Expression.jsonata(jsonata);
         jObj = JACKSON.readTree("[1,2,3]" );
@@ -81,14 +87,14 @@ public class TestBindingReference implements Serializable {
         bindingList.add(bindingNode);
 
         expected = new IntNode(6);
-        actual = jsonataExpr.evaluate(rootContextNode, bindingList);
+        actual = jsonataExpr.evaluate(rootConStringNode, bindingList);
         Assert.assertEquals(expected, actual);
     }
 
     public static void main(String[] args) {
         try {
             supportsContextualizedConstructionX();
-        } catch (Exception e) {
+        } catch (EvaluateException | EvaluateRuntimeException | IOException | ParseException | JacksonException e) {
             e.printStackTrace();
         }
     }

@@ -29,10 +29,10 @@ import com.api.jsonata4java.expressions.RegularExpression;
 import com.api.jsonata4java.expressions.generated.MappingExpressionParser.Function_callContext;
 import com.api.jsonata4java.expressions.utils.Constants;
 import com.api.jsonata4java.expressions.utils.FunctionUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.POJONode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.POJONode;
+import tools.jackson.databind.node.StringNode;
 
 /**
  * From http://docs.jsonata.org/string-functions.html:
@@ -125,7 +125,16 @@ public class ReplaceFunction extends FunctionBase {
                 int limit = -1;
                 // Make sure that the separator is not null
                 if (argPattern != null && (argPattern.isTextual() || argPattern instanceof POJONode)) {
-                    if (argPattern.asText().isEmpty()) {
+                    final String patternText;
+
+                    if (argPattern instanceof POJONode) {
+                        final Object pojo = ((POJONode) argPattern).getPojo();
+                        patternText = pojo == null ? "" : pojo.toString();
+                    } else {
+                        patternText = argPattern.asText();
+                    }
+
+                    if (patternText.isEmpty()) {
                         throw new EvaluateRuntimeException(ERR_MSG_ARG2_EMPTY_STR);
                     }
                     if (argCount >= 3) {
@@ -163,9 +172,9 @@ public class ReplaceFunction extends FunctionBase {
                             if (limit == -1) {
                                 // No limits... replace all occurrences in the string
                                 if (regex != null) {
-                                    result = new TextNode(regex.getPattern().matcher(str).replaceAll(jsonata2JavaReplacement(replacement)));
+                                    result = new StringNode(regex.getPattern().matcher(str).replaceAll(jsonata2JavaReplacement(replacement)));
                                 } else {
-                                    result = new TextNode(str.replaceAll(Pattern.quote(pattern), jsonata2JavaReplacement(replacement)));
+                                    result = new StringNode(str.replaceAll(Pattern.quote(pattern), jsonata2JavaReplacement(replacement)));
                                 }
                             } else {
                                 // Only perform the replace the specified number of times
@@ -177,7 +186,7 @@ public class ReplaceFunction extends FunctionBase {
                                         retString = retString.replaceFirst(Pattern.quote(pattern), jsonata2JavaReplacement(replacement));
                                     }
                                 } // FOR
-                                result = new TextNode(retString);
+                                result = new StringNode(retString);
                             }
                         } else {
                             throw new EvaluateRuntimeException(ERR_ARG3BADTYPE);

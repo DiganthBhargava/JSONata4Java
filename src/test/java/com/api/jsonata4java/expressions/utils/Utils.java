@@ -35,13 +35,13 @@ import org.junit.Assert;
 import com.api.jsonata4java.expressions.EvaluateException;
 import com.api.jsonata4java.expressions.Expressions;
 import com.api.jsonata4java.expressions.ParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.LongNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.LongNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class Utils implements Serializable {
 
@@ -70,7 +70,7 @@ public class Utils implements Serializable {
         return new String(buf);
     }
 
-    public static JsonNode getJson(String filePath) throws JsonProcessingException, IOException {
+    public static JsonNode getJson(String filePath) throws Exception, IOException {
         ObjectMapper m = new ObjectMapper();
         return m.readTree(new File(filePath));
     }
@@ -121,7 +121,7 @@ public class Utils implements Serializable {
      * @throws Exception if expected values are not provided
      */
     public static void test(String expression, String expected, String expectedExceptionMsg, String rootContext)
-        throws Exception {
+        throws EvaluateException, IOException, ParseException {
         test(expression, expected != null ? mapper.readTree(expected) : null, expectedExceptionMsg,
             rootContext == null ? null : mapper.readTree(rootContext));
     }
@@ -136,7 +136,7 @@ public class Utils implements Serializable {
      * @throws Exception if expected values are not provided
      */
     public static void test(String expression, JsonNode expected, String expectedEvaluateExceptionMsg,
-        JsonNode rootContext) throws Exception {
+        JsonNode rootContext) throws EvaluateException, IOException, ParseException {
         if (expected != null)
             expected = ensureAllIntegralsAreLongs(expected);
         if (rootContext != null)

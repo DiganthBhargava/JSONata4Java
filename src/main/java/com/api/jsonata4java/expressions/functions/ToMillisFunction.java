@@ -22,6 +22,7 @@
 
 package com.api.jsonata4java.expressions.functions;
 
+import java.text.ParseException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import com.api.jsonata4java.expressions.EvaluateRuntimeException;
@@ -31,9 +32,9 @@ import com.api.jsonata4java.expressions.generated.MappingExpressionParser.Functi
 import com.api.jsonata4java.expressions.utils.Constants;
 import com.api.jsonata4java.expressions.utils.DateTimeUtils;
 import com.api.jsonata4java.expressions.utils.FunctionUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.LongNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.LongNode;
 
 /**
  * http://docs.jsonata.org/numeric-functions.html
@@ -115,7 +116,7 @@ public class ToMillisFunction extends FunctionBase {
                     JS4JDate testDate = new JS4JDate();
                     try {
                         testDate = new JS4JDate(argTimestamp.asText());
-                    } catch (Exception e1) {
+                    } catch (ParseException e1) {
                         final String msg = String.format(Constants.ERR_MSG_TO_MILLIS_ISO_8601_FORMAT,
                             argTimestamp.asText());
                         throw new EvaluateRuntimeException(msg);
